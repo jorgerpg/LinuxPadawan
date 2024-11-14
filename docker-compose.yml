@@ -1,0 +1,33 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    hostname: mosquitto
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto:/mosquitto
+    networks:
+      - app-network
+
+  python-app:
+    build: ./app
+    container_name: python-app
+    depends_on:
+      - mosquitto
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app
+      - ./app/db:/app/db
+    networks:
+      - app-network
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=lock/access
+      - DB_PATH=/app/db/db.sqlite
+
+networks:
+  app-network:
+    driver: bridge
