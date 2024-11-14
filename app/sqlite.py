@@ -3,6 +3,7 @@
 import sqlite3
 from datetime import datetime
 import logging
+import pytz
 
 class Database:
     def __init__(self, db_path):
@@ -41,7 +42,8 @@ class Database:
 
     def insert_access(self, name, rfid):
         """ Insert an access record into the database with transaction """
-        time_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        timezone = pytz.timezone("America/Sao_Paulo")
+        time_now = datetime.now(timezone).strftime('%Y-%m-%d %H:%M:%S')
         
         try:
             conn = self.connect()

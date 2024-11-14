@@ -4,36 +4,36 @@ from sqlite import Database
 from mqtt_client import MQTTClient
 import logging
 
-# Configuração básica do logging para enviar tudo ao stdout
+# Basic logging configuration to send everything to stdout
 logging.basicConfig(
     level=logging.DEBUG,  
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 handler = logging.StreamHandler()
 
-# Criar e configurar o aplicativo Flask
+# Create and configure the Flask application
 app = Flask(__name__)
 
-# Caminho do banco de dados SQLite
+# SQLite database path
 db_path = os.getenv("DB_PATH")
 
-# Inicializar o objeto Database
+# Initialize the Database object
 db = Database(db_path)
 
-# Inicializar o objeto MQTTClient
+# Initialize the MQTTClient object
 mqtt_client = MQTTClient(os.getenv("MQTT_BROKER"), int(os.getenv("MQTT_PORT")), os.getenv("MQTT_TOPIC"), db)
 
-# Rota para exibir os registros na página web
+# Route to display records on the web page
 @app.route('/')
 def index():
     name_filter = request.args.get('name_filter', '')
     rfid_filter = request.args.get('rfid_filter', '')
     
-    # Obter os registros com os filtros aplicados
+    # Retrieve records with applied filters
     records = db.get_records(name_filter=name_filter, rfid_filter=rfid_filter)
     
     return render_template('index.html', records=records)
 
-# Iniciar o servidor Flask
+# Start the Flask server
 if __name__ == "__main__":
     app.run(debug=False, host='0.0.0.0', port=5000)

@@ -8,6 +8,7 @@ class MQTTClient:
         self.broker = broker
         self.port = port
         self.topic = topic
+        self.topic_confirmation = topic + "/confirmation"
         self.db = db
         self.client.on_message = self.on_message
         self.client.connect(self.broker, self.port)
@@ -39,7 +40,7 @@ class MQTTClient:
 
                     # Send a confirmation back to the ESP32
                     confirmation = f"Access record for {name} with RFID {rfid} successfully created!"
-                    client.publish("lock/access/confirmation", confirmation)
+                    client.publish(self.topic_confirmation, confirmation)
                 except Exception as e:
                     logging.error(f"Failed to insert access record into database: {e}")
             else:
