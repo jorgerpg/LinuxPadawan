@@ -1,12 +1,14 @@
-import os
-from flask import Flask, render_template, request
-from sqlite import Database
-from mqtt_client import MQTTClient
 import logging
+import os
+
+from flask import Flask
+from mqtt_client import MQTTClient
+from routes.db_bp import get_db_blueprint
+from sqlite import Database
 
 # Basic logging configuration to send everything to stdout
 logging.basicConfig(
-    level=logging.DEBUG,  
+    level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 handler = logging.StreamHandler()
@@ -21,19 +23,12 @@ db_path = os.getenv("DB_PATH")
 db = Database(db_path)
 
 # Initialize the MQTTClient object
-mqtt_client = MQTTClient(os.getenv("MQTT_BROKER"), int(os.getenv("MQTT_PORT")), os.getenv("MQTT_TOPIC"), db)
+mqtt_client = MQTTClient(os.getenv("MQTT_BROKER"), int(
+    os.getenv("MQTT_PORT")), os.getenv("MQTT_TOPIC"), db)
 
-# Route to display records on the web page
-@app.route('/')
-def index():
-    name_filter = request.args.get('name_filter', '')
-    rfid_filter = request.args.get('rfid_filter', '')
-    
-    # Retrieve records with applied filters
-    records = db.get_records(name_filter=name_filter, rfid_filter=rfid_filter)
-    
-    return render_template('index.html', records=records)
+# Registrar o Blueprint
+app.register_blueprint(get_db_blueprint(db))
 
 # Start the Flask server
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port=5000)
+  app.run(debug=False, host='0.0.0.0', port=5000)
