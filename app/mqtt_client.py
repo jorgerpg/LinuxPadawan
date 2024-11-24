@@ -37,11 +37,11 @@ class MQTTClient:
       if rfid:
         try:
           # Insert the data into the database
-          self.db.insert_access(rfid)
-
+          status = self.db.insert_access(rfid)
           # Send a confirmation back to the ESP32
-          confirmation = f"Access record for RFID {rfid} successfully created!"
-          client.publish(self.topic_confirmation, confirmation)
+          if status == "Granted":
+            confirmation = f"Access for RFID {rfid} granted!"
+            client.publish(self.topic_confirmation, confirmation)
         except Exception as e:
           logging.error(f"Failed to insert access record into database: {e}")
       else:

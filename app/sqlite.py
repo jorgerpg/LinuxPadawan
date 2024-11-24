@@ -109,6 +109,7 @@ class Database:
 
         conn.commit()
         conn.close()
+        return status
     except sqlite3.Error as e:
         logging.error(f"Error inserting access record into database: {e}")
         raise
