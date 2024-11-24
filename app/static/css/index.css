@@ -1,0 +1,49 @@
+/* styles.css */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Arial', sans-serif;
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+table {
+    background-color: white;
+}
+
+th, td {
+    text-align: center;
+}
+
+input[type="text"] {
+    margin-bottom: 10px;
+}
+
+button {
+    margin-top: 10px;
+}
+
+/* Estilo para o botão de User Registration */
+.register-button {
+display: inline-block;
+background-color: #007bff; /* Azul vibrante */
+color: #fff; /* Texto branco */
+padding: 8px 20px;
+font-size: 15px;
+font-weight: bold;
+text-align: center;
+text-decoration: none;
+border-radius: 5px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+transition: background-color 0.3s ease, transform 0.2s ease;
+}
+  
+.register-button:hover {
+background-color: #0056b3; /* Azul mais escuro no hover */
+transform: scale(1.05); /* Leve aumento ao passar o mouse */
+}

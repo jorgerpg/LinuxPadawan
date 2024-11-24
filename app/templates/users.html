@@ -1,39 +1,46 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerenciamento de Usuários</title>
+  <title>User Management</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/users.css') }}">
 </head>
 
 <body>
+  <!-- Navigation bar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/">Programa Padawan</a>
-    </div>
+      <div class="container-fluid">
+          <!-- Link to the index -->
+          <a class="navbar-brand" href="/">Padawan Program</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+          </button>
+      </div>
   </nav>
 
   <div class="container mt-5">
-    <h2 class="mb-4">Gerenciamento de Usuários</h2>
+    <h2 class="mb-4">User Management</h2>
 
-    <!-- Formulário para adicionar usuário -->
+    <!-- Form to add a user -->
     <form method="POST" class="mb-3">
       <div class="row">
         <div class="col-md-4">
-          <input type="text" class="form-control" name="name" placeholder="Nome" required>
+          <input type="text" class="form-control" name="name" placeholder="Filter by Name" required>
         </div>
         <div class="col-md-4">
-          <input type="text" class="form-control" name="rfid" placeholder="RFID" required>
+          <input type="text" class="form-control" name="rfid" placeholder="Filter by RFID" required>
         </div>
         <div class="col-md-4">
-          <button type="submit" class="btn btn-primary w-100">Adicionar Usuário</button>
+          <button type="submit" class="btn btn-primary w-100">Add User</button>
         </div>
       </div>
     </form>
 
-    <!-- Mensagens de erro e sucesso -->
+    <!-- Error and success messages -->
     {% if error %}
     <div class="alert alert-danger" role="alert">
       {{ error }}
@@ -46,14 +53,14 @@
     </div>
     {% endif %}
 
-    <!-- Tabela de usuários -->
+    <!-- User table -->
     <table class="table table-striped table-bordered">
       <thead>
         <tr>
           <th>ID</th>
-          <th>Nome</th>
+          <th>Name</th>
           <th>RFID</th>
-          <th>Ações</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -65,7 +72,7 @@
           <td>
             <form action="/delete_user/{{ user.id }}" method="POST" style="display: inline;">
               <button type="submit" class="btn btn-danger btn-sm"
-                onclick="return confirm('Tem certeza que deseja excluir este usuário?')">Excluir</button>
+                onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
             </form>
           </td>
         </tr>

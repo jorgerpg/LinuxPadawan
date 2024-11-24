@@ -33,6 +33,8 @@ class Database:
                 CREATE TABLE IF NOT EXISTS records (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER,
+                    user_name TEXT NOT NULL,
+                    status TEXT,
                     time TEXT NOT NULL,
                     FOREIGN KEY (user_id) REFERENCES users (id)
                 )
@@ -70,60 +72,69 @@ class Database:
       raise  # Reraise the exception after logging it
 
   def insert_access(self, rfid):
-    """Insert an access record into the database if the RFID is valid"""
+    """Insert an access record into the database with Granted or Denied status."""
     timezone = pytz.timezone("America/Sao_Paulo")
     time_now = datetime.now(timezone).strftime('%Y-%m-%d %H:%M:%S')
 
     try:
-      conn = self.connect()
-      cursor = conn.cursor()
+        conn = self.connect()
+        cursor = conn.cursor()
 
-      # Verificar se o RFID existe na tabela 'users'
-      cursor.execute("SELECT id, name FROM users WHERE rfid = ?", (rfid,))
-      user = cursor.fetchone()
+        # Verificar se o RFID existe na tabela 'users'
+        cursor.execute("SELECT id, name FROM users WHERE rfid = ?", (rfid,))
+        user = cursor.fetchone()
 
-      if user:
-        user_id = user['id']
-        user_name = user['name']
+        if user:
+            user_id = user['id']
+            user_name = user['name']
+            status = "Granted"
 
-        # Inserir o registro na tabela 'records'
-        cursor.execute(
-            "INSERT INTO records (user_id, time) VALUES (?, ?)", (user_id, time_now))
+            # Inserir o registro de acesso liberado
+            cursor.execute(
+                "INSERT INTO records (user_id, user_name, time, status) VALUES (?, ?, ?, ?)", 
+                (user_id, user_name, time_now, status)
+            )
+            logging.info(
+                f"Access record for {user_name} (RFID {rfid}) successfully inserted.")
+        else:
+            status = "Denied"
+
+            # Inserir o registro de acesso negado
+            cursor.execute(
+                "INSERT INTO records (user_id, user_name, time, status) VALUES (?, ?, ?, ?)", 
+                (None, "Unknown", time_now, status)
+            )
+            logging.warning(
+                f"Access denied for unknown RFID {rfid}.")
+
         conn.commit()
-        logging.info(
-            f"Access record for {user_name} (RFID {rfid}) successfully inserted.")
-      else:
-        logging.warning(
-            f"RFID {rfid} not found in 'users' table. Access denied.")
-
-      conn.close()
+        conn.close()
     except sqlite3.Error as e:
-      logging.error(f"Error inserting access record into database: {e}")
-      raise  # Reraise the exception after logging it
+        logging.error(f"Error inserting access record into database: {e}")
+        raise
 
   def get_records(self, name_filter='', rfid_filter=''):
     """Fetch access records from the database with optional filters"""
     try:
-      conn = self.connect()
-      cursor = conn.cursor()
+        conn = self.connect()
+        cursor = conn.cursor()
 
-      # Criar a consulta com filtros opcionais
-      query = """
-                SELECT records.id, users.name, users.rfid, records.time
-                FROM records
-                JOIN users ON records.user_id = users.id
-                WHERE users.name LIKE ? AND users.rfid LIKE ?
-                ORDER BY records.time DESC
-            """
-      cursor.execute(query, ('%' + name_filter + '%', '%' + rfid_filter + '%'))
+        # Consultar a tabela records com a coluna status
+        query = """
+            SELECT id, user_name, time, status
+            FROM records
+            WHERE user_name LIKE ? AND time LIKE ?
+            ORDER BY time DESC
+        """
+        cursor.execute(query, ('%' + name_filter + '%', '%' + rfid_filter + '%'))
 
-      records = cursor.fetchall()
-      conn.close()
-      logging.info(f"Fetched {len(records)} records from the database.")
-      return records
+        records = cursor.fetchall()
+        conn.close()
+        logging.info(f"Fetched {len(records)} records from the database.")
+        return records
     except sqlite3.Error as e:
-      logging.error(f"Error fetching records from database: {e}")
-      return []  # Return an empty list in case of an error
+        logging.error(f"Error fetching records from database: {e}")
+        return []
 
   def get_users(self, name_filter='', rfid_filter=''):
     """Fetch users from the database with optional filters"""
