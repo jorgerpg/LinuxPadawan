@@ -27,7 +27,7 @@ mqtt_client = MQTTClient(os.getenv("MQTT_BROKER"), int(
     os.getenv("MQTT_PORT")), os.getenv("MQTT_TOPIC"), db)
 
 # Registrar o Blueprint
-app.register_blueprint(get_db_blueprint(db))
+app.register_blueprint(get_db_blueprint(db, mqtt_client))
 
 # Start the Flask server
 if __name__ == "__main__":

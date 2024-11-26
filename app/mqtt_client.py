@@ -9,8 +9,9 @@ class MQTTClient:
     self.client = mqtt.Client()
     self.broker = broker
     self.port = port
-    self.topic = topic
-    self.topic_confirmation = topic + "/confirmation"
+    self.topic_access = topic + "/access"
+    self.topic_access_confirmation = self.topic_access + "/confirmation"
+    self.topic_register_completed = topic + "/register/completed"
     self.db = db
     self.client.on_message = self.on_message
     self.client.connect(self.broker, self.port)
@@ -19,8 +20,10 @@ class MQTTClient:
 
   def start(self):
     """ Start the MQTT loop in a separate thread """
-    self.client.subscribe(self.topic)
-    logging.info(f"Client subd to topic {self.topic}")
+    self.client.subscribe(self.topic_access)
+    self.client.subscribe(self.topic_register_completed)
+    logging.info(
+        f"Client subd to topics {self.topic_access} and {self.topic_register_completed}.")
     self.client.loop_start()
 
   def on_message(self, client, userdata, msg):
@@ -35,15 +38,26 @@ class MQTTClient:
       rfid = data.get("rfid")
 
       if rfid:
-        try:
-          # Insert the data into the database
-          status = self.db.insert_access(rfid)
-          # Send a confirmation back to the ESP32
-          if status == "Granted":
-            confirmation = f"Access for RFID {rfid} granted!"
-            client.publish(self.topic_confirmation, confirmation)
-        except Exception as e:
-          logging.error(f"Failed to insert access record into database: {e}")
+        if topic == self.topic_access:
+          try:
+            # Insert the data into the database
+            self.db.insert_access(rfid)
+            # Send a granted confirmation back to the ESP32
+            client.publish(self.topic_access_confirmation, "1")
+          except Exception as e:
+            # Send a denied confirmation back to the ESP32
+            client.publish(self.topic_access_confirmation, "0")
+            logging.error(f"Failed to insert access record into database: {e}")
+        if topic == self.topic_register_completed:
+          name = data.get("name")
+          if name:
+            try:
+              self.db.add_user(name, rfid)
+              success_message = "User added successfully!"
+            except Exception as e:
+              logging.error(f"Error adding user: {e}")
+          else:
+            logging.warning("Invalid data: 'name' is required for register.")
       else:
         logging.warning("Invalid data: 'rfid' is required")
     except json.JSONDecodeError as e:

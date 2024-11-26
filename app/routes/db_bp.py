@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, render_template, request
 from sqlite import Database
 
 
-def get_db_blueprint(db: Database):
+def get_db_blueprint(db: Database, mqtt_client):
   """
   Returns a Blueprint to manage routes.
   """
@@ -15,10 +15,8 @@ def get_db_blueprint(db: Database):
   def index():
     name_filter = request.args.get('name_filter', '')
     rfid_filter = request.args.get('rfid_filter', '')
-
     # Retrieve records with the applied filters
     records = db.get_records(name_filter=name_filter, rfid_filter=rfid_filter)
-
     return render_template('index.html', records=records)
 
   @db_bp.route("/users", methods=["GET", "POST"])
@@ -26,21 +24,17 @@ def get_db_blueprint(db: Database):
     if request.method == 'POST':
       # Add new user
       name = request.form['name']
-      rfid = request.form['rfid']
-      try:
-        db.add_user(name, rfid)
-        success_message = "User added successfully!"
-      except Exception as e:
-        logging.error(f"Error adding user: {e}")
-        return render_template("users.html", users=db.get_users(), error="Error adding user.")
+      if not name:
+        return jsonify({"error": "Name is required"}), 400
 
-    # Apply filters
-    name_filter = request.args.get('name_filter', '').strip()
-    rfid_filter = request.args.get('rfid_filter', '').strip()
+      try:
+        mqtt_client.client.publish("lock/register/start", name)
+        return jsonify({"message": f"Started registration for {name}."}), 200
+      except Exception as e:
+        logging.error(f"Error starting registration: {e}")
 
     # Search for users in the database with the applied filters
-    users = db.get_users(name_filter=name_filter, rfid_filter=rfid_filter)
-
+    users = db.get_users()
     return render_template("users.html", users=users)
 
   @db_bp.route("/delete_user/<int:user_id>", methods=["POST"])
