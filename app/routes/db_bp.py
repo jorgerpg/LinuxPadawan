@@ -22,16 +22,17 @@ def get_db_blueprint(db: Database, mqtt_client):
   @db_bp.route("/users", methods=["GET", "POST"])
   def manage_users():
     if request.method == 'POST':
-      # Add new user
+      # Adiciona novo usuário
       name = request.form['name']
       if not name:
-        return jsonify({"error": "Name is required"}), 400
+        return jsonify({"status": "error", "message": "Name is required"}), 400
 
       try:
         mqtt_client.client.publish("lock/register/start", name)
-        return jsonify({"message": f"Started registration for {name}."}), 200
+        return jsonify({"status": "success", "message": f"Started registration for {name}."}), 200
       except Exception as e:
         logging.error(f"Error starting registration: {e}")
+        return jsonify({"status": "error", "message": "Failed to start registration"}), 500
 
     # Search for users in the database with the applied filters
     users = db.get_users()

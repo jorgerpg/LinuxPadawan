@@ -16,10 +16,19 @@ table {
     background-color: white;
 }
 
-th, td {
+th,
+td {
     text-align: center;
 }
 
 input[type="text"] {
     margin-bottom: 10px;
+}
+
+.text-success {
+    color: green;
+}
+
+.text-danger {
+    color: red;
 }

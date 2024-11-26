@@ -41,9 +41,12 @@ class MQTTClient:
         if topic == self.topic_access:
           try:
             # Insert the data into the database
-            self.db.insert_access(rfid)
-            # Send a granted confirmation back to the ESP32
-            client.publish(self.topic_access_confirmation, "1")
+            status = self.db.insert_access(rfid)
+            if status == "Granted":
+              # Send a granted confirmation back to the ESP32
+              client.publish(self.topic_access_confirmation, "1")
+            elif status == "Denied":
+              client.publish(self.topic_access_confirmation, "0")
           except Exception as e:
             # Send a denied confirmation back to the ESP32
             client.publish(self.topic_access_confirmation, "0")
